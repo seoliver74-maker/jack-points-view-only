@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Jack's Points</title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Jack's Points" />
+  <meta name="theme-color" content="#0a0f2e" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg0: #060c28;
+      --card: rgba(255,255,255,0.06);
+      --card-border: rgba(255,255,255,0.10);
+      --blue: #4d9fff;
+      --blue-bright: #7db8ff;
+      --white: #ffffff;
+      --off-white: rgba(255,255,255,0.85);
+      --muted: rgba(255,255,255,0.38);
+      --green: #34d399;
+      --red: #f87171;
+      --r: 18px;
+      --safe-t: env(safe-area-inset-top);
+      --safe-b: env(safe-area-inset-bottom);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg0); color: var(--white);
+      min-height: 100dvh;
+      -webkit-tap-highlight-color: transparent;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: ''; position: fixed;
+      top: -120px; left: 50%; transform: translateX(-50%);
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(77,159,255,0.18) 0%, transparent 65%);
+      pointer-events: none; z-index: 0;
+    }
+
+    .app {
+      position: relative; z-index: 1;
+      max-width: 430px; margin: 0 auto;
+      padding: calc(var(--safe-t) + 18px) 20px calc(var(--safe-b) + 36px);
+      display: flex; flex-direction: column; gap: 16px;
+    }
+
+    /* TOP BAR */
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 0 2px; }
+    .topbar-name { font-size: 13px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; color: var(--muted); }
+    .topbar-date { font-size: 13px; font-weight: 500; color: var(--muted); }
+
+    /* HERO */
+    .hero {
+      text-align: center; padding: 36px 24px 32px;
+      background: linear-gradient(160deg, rgba(77,159,255,0.14) 0%, rgba(77,159,255,0.04) 100%);
+      border: 1px solid rgba(77,159,255,0.22); border-radius: 24px;
+      position: relative; overflow: hidden;
+    }
+    .hero::after {
+      content: ''; position: absolute; bottom: -30px; right: -30px;
+      width: 140px; height: 140px;
+      background: radial-gradient(circle, rgba(77,159,255,0.14) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--blue); margin-bottom: 10px; }
+    .hero-balance { font-size: 84px; font-weight: 900; line-height: 1; letter-spacing: -3px; color: var(--white); font-variant-numeric: tabular-nums; }
+    .hero-pts-label { font-size: 16px; font-weight: 500; color: var(--blue-bright); margin-top: 4px; }
+    .hero-divider { width: 40px; height: 1px; background: rgba(77,159,255,0.3); margin: 18px auto; }
+    .hero-dollars { font-size: 22px; font-weight: 700; color: var(--off-white); }
+
+    /* HISTORY */
+    .hist-head { display: flex; align-items: center; padding: 0 2px; }
+    .hist-title { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+    .hist-card { background: var(--card); border: 1px solid var(--card-border); border-radius: var(--r); overflow: hidden; }
+
+    .tx-row {
+      display: grid;
+      grid-template-columns: 8px 1fr auto auto;
+      align-items: center; gap: 12px;
+      padding: 13px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .tx-row:last-child { border-bottom: none; }
+
+    .tx-pip { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .tx-pip.weekly { background: var(--blue); }
+    .tx-pip.add    { background: var(--green); }
+    .tx-pip.sub    { background: var(--red); }
+
+    .tx-body { min-width: 0; }
+    .tx-reason { font-size: 14px; font-weight: 500; color: var(--off-white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tx-reason.is-weekly { color: var(--muted); font-weight: 400; font-size: 13px; }
+    .tx-date-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    .tx-delta { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; min-width: 40px; text-align: right; flex-shrink: 0; }
+    .tx-delta.weekly { color: var(--blue); }
+    .tx-delta.add    { color: var(--green); }
+    .tx-delta.sub    { color: var(--red); }
+
+    .tx-bal { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--blue-bright); opacity: 0.55; min-width: 28px; text-align: right; flex-shrink: 0; }
+
+    /* STATUS */
+    .status-block { text-align: center; padding: 48px 20px; background: var(--card); border: 1px solid var(--card-border); border-radius: var(--r); }
+    .status-icon { font-size: 32px; margin-bottom: 10px; }
+    .status-msg { font-size: 14px; color: var(--muted); line-height: 1.5; }
+    .retry-btn { margin-top: 16px; background: rgba(77,159,255,0.15); border: 1px solid rgba(77,159,255,0.3); border-radius: 10px; color: var(--blue-bright); font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; padding: 10px 20px; cursor: pointer; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="topbar-name">Jack's Points</div>
+    <div class="topbar-date" id="topDate"></div>
+  </div>
+
+  <div class="hero">
+    <div class="hero-eyebrow">My Balance</div>
+    <div class="hero-balance" id="heroBalance">—</div>
+    <div class="hero-pts-label">points</div>
+    <div class="hero-divider"></div>
+    <div class="hero-dollars" id="heroDollars">—</div>
+  </div>
+
+  <div class="hist-head"><div class="hist-title">Last 60 days</div></div>
+  <div id="histWrap"></div>
+</div>
+
+<script>
+const API       = 'https://script.google.com/macros/s/AKfycbyxHhnJz467akhVIBS-u7DfZEXiKuIbglF7MsY95RIdDqh15wvFP_aPeS3EBoUyutdm/exec';
+const CENTS     = 10;
+const HIST_DAYS = 60;
+
+document.getElementById('topDate').textContent =
+  new Date().toLocaleDateString([], { weekday:'short', month:'short', day:'numeric' });
+
+async function load() {
+  showLoading();
+  try {
+    const res  = await fetch(API + '?action=load');
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error);
+    render(data.txs);
+  } catch(err) { showError(); }
+}
+
+function render(txs) {
+  const balance = txs.reduce((s,t) => s + t.delta, 0);
+  document.getElementById('heroBalance').textContent = balance.toLocaleString();
+  document.getElementById('heroDollars').textContent = '$' + (balance * CENTS / 100).toFixed(2);
+
+  const balMap = {};
+  let run = 0;
+  for (const t of txs) { run += t.delta; balMap[t.id] = run; }
+
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - HIST_DAYS);
+  cutoff.setHours(0,0,0,0);
+
+  const recent = [...txs].filter(t => new Date(t.ts) >= cutoff).reverse();
+  const wrap   = document.getElementById('histWrap');
+
+  if (!recent.length) {
+    wrap.innerHTML = '<div class="status-block"><div class="status-msg">No activity yet.</div></div>';
+    return;
+  }
+
+  const today = ds(new Date());
+  const yest  = ds(yesterday());
+
+  function lbl(iso) {
+    const d = iso.slice(0,10);
+    if (d === today) return 'Today';
+    if (d === yest)  return 'Yesterday';
+    return new Date(d + 'T12:00:00').toLocaleDateString([], { weekday:'short', month:'short', day:'numeric' });
+  }
+
+  wrap.innerHTML = '<div class="hist-card">' + recent.map(t => {
+    const pip  = t.type === 'weekly' ? 'weekly' : t.type === 'sub' ? 'sub' : 'add';
+    const sign = t.delta >= 0 ? '+' : '';
+    return '<div class="tx-row">' +
+      '<div class="tx-pip ' + pip + '"></div>' +
+      '<div class="tx-body">' +
+        '<div class="tx-reason' + (t.type==='weekly' ? ' is-weekly' : '') + '">' + esc(t.reason) + '</div>' +
+        '<div class="tx-date-label">' + lbl(t.ts) + '</div>' +
+      '</div>' +
+      '<div class="tx-delta ' + pip + '">' + sign + t.delta + '</div>' +
+      '<div class="tx-bal">' + balMap[t.id] + '</div>' +
+    '</div>';
+  }).join('') + '</div>';
+}
+
+function showLoading() {
+  document.getElementById('heroBalance').textContent = '—';
+  document.getElementById('heroDollars').textContent = '—';
+  document.getElementById('histWrap').innerHTML = '<div class="status-block"><div class="status-icon">⏳</div><div class="status-msg">Loading...</div></div>';
+}
+function showError() {
+  document.getElementById('histWrap').innerHTML = '<div class="status-block"><div class="status-icon">⚠️</div><div class="status-msg">Couldn\'t load. Check connection.</div><button class="retry-btn" onclick="load()">Try again</button></div>';
+}
+
+function ds(d)       { return d.toISOString().slice(0,10); }
+function yesterday() { const d = new Date(); d.setDate(d.getDate()-1); return d; }
+function esc(s)      { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+load();
+</script>
+</body>
+</html>
